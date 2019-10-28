@@ -21,7 +21,7 @@
 
 #include "spi.h"
 
-struct spi_handle {
+struct cp_spi_handle {
     int fd;
 
     struct {
@@ -30,7 +30,7 @@ struct spi_handle {
     } error;
 };
 
-static int _spi_error(spi_t *spi, int code, int c_errno, const char *fmt, ...) {
+static int _spi_error(cp_spi_t *spi, int code, int c_errno, const char *fmt, ...) {
     va_list ap;
 
     spi->error.c_errno = c_errno;
@@ -49,8 +49,8 @@ static int _spi_error(spi_t *spi, int code, int c_errno, const char *fmt, ...) {
     return code;
 }
 
-spi_t *spi_new(void) {
-    spi_t *spi = calloc(1, sizeof(spi_t));
+cp_spi_t *cp_spi_new(void) {
+    cp_spi_t *spi = calloc(1, sizeof(cp_spi_t));
     if (spi == NULL)
         return NULL;
 
@@ -59,15 +59,15 @@ spi_t *spi_new(void) {
     return spi;
 }
 
-void spi_free(spi_t *spi) {
+void cp_spi_free(cp_spi_t *spi) {
     free(spi);
 }
 
-int spi_open(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed) {
-    return spi_open_advanced(spi, path, mode, max_speed, MSB_FIRST, 8, 0);
+int cp_spi_open(cp_spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed) {
+    return cp_spi_open_advanced(spi, path, mode, max_speed, MSB_FIRST, 8, 0);
 }
 
-int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed, spi_bit_order_t bit_order, uint8_t bits_per_word, uint8_t extra_flags) {
+int cp_spi_open_advanced(cp_spi_t *spi, const char *path, unsigned int mode, uint32_t max_speed, spi_bit_order_t bit_order, uint8_t bits_per_word, uint8_t extra_flags) {
     uint8_t data8;
 
     /* Validate arguments */
@@ -76,7 +76,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
     if (bit_order != MSB_FIRST && bit_order != LSB_FIRST)
         return _spi_error(spi, SPI_ERROR_ARG, 0, "Invalid bit order (can be MSB_FIRST,LSB_FIRST)");
 
-    memset(spi, 0, sizeof(spi_t));
+    memset(spi, 0, sizeof(cp_spi_t));
 
     /* Open device */
     if ((spi->fd = open(path, O_RDWR)) < 0)
@@ -107,7 +107,7 @@ int spi_open_advanced(spi_t *spi, const char *path, unsigned int mode, uint32_t 
     return 0;
 }
 
-int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len) {
+int cp_spi_transfer(cp_spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len) {
     struct spi_ioc_transfer spi_xfer;
 
     /* Prepare SPI transfer structure */
@@ -127,7 +127,7 @@ int spi_transfer(spi_t *spi, const uint8_t *txbuf, uint8_t *rxbuf, size_t len) {
     return 0;
 }
 
-int spi_close(spi_t *spi) {
+int cp_spi_close(cp_spi_t *spi) {
     if (spi->fd < 0)
         return 0;
 
@@ -140,7 +140,7 @@ int spi_close(spi_t *spi) {
     return 0;
 }
 
-int spi_get_mode(spi_t *spi, unsigned int *mode) {
+int cp_spi_get_mode(cp_spi_t *spi, unsigned int *mode) {
     uint8_t data8;
 
     if (ioctl(spi->fd, SPI_IOC_RD_MODE, &data8) < 0)
@@ -151,7 +151,7 @@ int spi_get_mode(spi_t *spi, unsigned int *mode) {
     return 0;
 }
 
-int spi_get_max_speed(spi_t *spi, uint32_t *max_speed) {
+int cp_spi_get_max_speed(cp_spi_t *spi, uint32_t *max_speed) {
     uint32_t data32;
 
     if (ioctl(spi->fd, SPI_IOC_RD_MAX_SPEED_HZ, &data32) < 0)
@@ -162,7 +162,7 @@ int spi_get_max_speed(spi_t *spi, uint32_t *max_speed) {
     return 0;
 }
 
-int spi_get_bit_order(spi_t *spi, spi_bit_order_t *bit_order) {
+int cp_spi_get_bit_order(cp_spi_t *spi, spi_bit_order_t *bit_order) {
     uint8_t data8;
 
     if (ioctl(spi->fd, SPI_IOC_RD_LSB_FIRST, &data8) < 0)
@@ -176,7 +176,7 @@ int spi_get_bit_order(spi_t *spi, spi_bit_order_t *bit_order) {
     return 0;
 }
 
-int spi_get_bits_per_word(spi_t *spi, uint8_t *bits_per_word) {
+int cp_spi_get_bits_per_word(cp_spi_t *spi, uint8_t *bits_per_word) {
     uint8_t data8;
 
     if (ioctl(spi->fd, SPI_IOC_RD_BITS_PER_WORD, &data8) < 0)
@@ -187,7 +187,7 @@ int spi_get_bits_per_word(spi_t *spi, uint8_t *bits_per_word) {
     return 0;
 }
 
-int spi_get_extra_flags(spi_t *spi, uint8_t *extra_flags) {
+int cp_spi_get_extra_flags(cp_spi_t *spi, uint8_t *extra_flags) {
     uint8_t data8;
 
     if (ioctl(spi->fd, SPI_IOC_RD_MODE, &data8) < 0)
@@ -199,7 +199,7 @@ int spi_get_extra_flags(spi_t *spi, uint8_t *extra_flags) {
     return 0;
 }
 
-int spi_set_mode(spi_t *spi, unsigned int mode) {
+int cp_spi_set_mode(cp_spi_t *spi, unsigned int mode) {
     uint8_t data8;
 
     if (mode & ~0x3)
@@ -217,7 +217,7 @@ int spi_set_mode(spi_t *spi, unsigned int mode) {
     return 0;
 }
 
-int spi_set_bit_order(spi_t *spi, spi_bit_order_t bit_order) {
+int cp_spi_set_bit_order(cp_spi_t *spi, spi_bit_order_t bit_order) {
     uint8_t data8;
 
     if (bit_order != MSB_FIRST && bit_order != LSB_FIRST)
@@ -234,7 +234,7 @@ int spi_set_bit_order(spi_t *spi, spi_bit_order_t bit_order) {
     return 0;
 }
 
-int spi_set_extra_flags(spi_t *spi, uint8_t extra_flags) {
+int cp_spi_set_extra_flags(cp_spi_t *spi, uint8_t extra_flags) {
     uint8_t data8;
 
     if (ioctl(spi->fd, SPI_IOC_RD_MODE, &data8) < 0)
@@ -251,7 +251,7 @@ int spi_set_extra_flags(spi_t *spi, uint8_t extra_flags) {
     return 0;
 }
 
-int spi_set_max_speed(spi_t *spi, uint32_t max_speed) {
+int cp_spi_set_max_speed(cp_spi_t *spi, uint32_t max_speed) {
 
     if (ioctl(spi->fd, SPI_IOC_WR_MAX_SPEED_HZ, &max_speed) < 0)
         return _spi_error(spi, SPI_ERROR_CONFIGURE, errno, "Setting SPI max speed");
@@ -259,7 +259,7 @@ int spi_set_max_speed(spi_t *spi, uint32_t max_speed) {
     return 0;
 }
 
-int spi_set_bits_per_word(spi_t *spi, uint8_t bits_per_word) {
+int cp_spi_set_bits_per_word(cp_spi_t *spi, uint8_t bits_per_word) {
 
     if (ioctl(spi->fd, SPI_IOC_WR_BITS_PER_WORD, &bits_per_word) < 0)
         return _spi_error(spi, SPI_ERROR_CONFIGURE, errno, "Setting SPI bits per word");
@@ -267,7 +267,7 @@ int spi_set_bits_per_word(spi_t *spi, uint8_t bits_per_word) {
     return 0;
 }
 
-int spi_tostring(spi_t *spi, char *str, size_t len) {
+int cp_spi_tostring(cp_spi_t *spi, char *str, size_t len) {
     unsigned int mode;
     char mode_str[2];
     uint32_t max_speed;
@@ -279,27 +279,27 @@ int spi_tostring(spi_t *spi, char *str, size_t len) {
     uint8_t extra_flags;
     char extra_flags_str[5];
 
-    if (spi_get_mode(spi, &mode) < 0)
+    if (cp_spi_get_mode(spi, &mode) < 0)
         strncpy(mode_str, "?", sizeof(mode_str));
     else
         snprintf(mode_str, sizeof(mode_str), "%d", mode);
 
-    if (spi_get_max_speed(spi, &max_speed) < 0)
+    if (cp_spi_get_max_speed(spi, &max_speed) < 0)
         strncpy(max_speed_str, "?", sizeof(max_speed_str));
     else
         snprintf(max_speed_str, sizeof(max_speed_str), "%u", max_speed);
 
-    if (spi_get_bit_order(spi, &bit_order) < 0)
+    if (cp_spi_get_bit_order(spi, &bit_order) < 0)
         strncpy(bit_order_str, "?", sizeof(bit_order_str));
     else
         strncpy(bit_order_str, (bit_order == LSB_FIRST) ? "LSB_FIRST" : "MSB_FIRST", sizeof(bit_order_str));
 
-    if (spi_get_bits_per_word(spi, &bits_per_word) < 0)
+    if (cp_spi_get_bits_per_word(spi, &bits_per_word) < 0)
         strncpy(bits_per_word_str, "?", sizeof(bits_per_word_str));
     else
         snprintf(bits_per_word_str, sizeof(bits_per_word_str), "%u", bits_per_word);
 
-    if (spi_get_extra_flags(spi, &extra_flags) < 0)
+    if (cp_spi_get_extra_flags(spi, &extra_flags) < 0)
         strncpy(extra_flags_str, "?", sizeof(extra_flags_str));
     else
         snprintf(extra_flags_str, sizeof(extra_flags_str), "0x%02x", extra_flags);
@@ -307,15 +307,15 @@ int spi_tostring(spi_t *spi, char *str, size_t len) {
     return snprintf(str, len, "SPI (fd=%d, mode=%s, max_speed=%s, bit_order=%s, bits_per_word=%s, extra_flags=%s)", spi->fd, mode_str, max_speed_str, bit_order_str, bits_per_word_str, extra_flags_str);
 }
 
-const char *spi_errmsg(spi_t *spi) {
+const char *cp_spi_errmsg(cp_spi_t *spi) {
     return spi->error.errmsg;
 }
 
-int spi_errno(spi_t *spi) {
+int cp_spi_errno(cp_spi_t *spi) {
     return spi->error.c_errno;
 }
 
-int spi_fd(spi_t *spi) {
+int cp_spi_fd(cp_spi_t *spi) {
     return spi->fd;
 }
 

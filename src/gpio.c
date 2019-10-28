@@ -26,16 +26,16 @@
 /* Operations table and handle structure */
 /*********************************************************************************/
 
-struct gpio_ops {
+struct cp_gpio_ops {
     int (*read)(gpio_t *gpio, bool *value);
     int (*write)(gpio_t *gpio, bool value);
-    int (*read_event)(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp);
+    int (*read_event)(gpio_t *gpio, cp_gpio_edge_t *edge, uint64_t *timestamp);
     int (*poll)(gpio_t *gpio, int timeout_ms);
     int (*close)(gpio_t *gpio);
-    int (*get_direction)(gpio_t *gpio, gpio_direction_t *direction);
-    int (*get_edge)(gpio_t *gpio, gpio_edge_t *edge);
-    int (*set_direction)(gpio_t *gpio, gpio_direction_t direction);
-    int (*set_edge)(gpio_t *gpio, gpio_edge_t edge);
+    int (*get_direction)(gpio_t *gpio, cp_gpio_direction_t *direction);
+    int (*get_edge)(gpio_t *gpio, cp_gpio_edge_t *edge);
+    int (*set_direction)(gpio_t *gpio, cp_gpio_direction_t direction);
+    int (*set_edge)(gpio_t *gpio, cp_gpio_edge_t edge);
     unsigned int (*line)(gpio_t *gpio);
     int (*fd)(gpio_t *gpio);
     int (*name)(gpio_t *gpio, char *str, size_t len);
@@ -45,8 +45,8 @@ struct gpio_ops {
     int (*tostring)(gpio_t *gpio, char *str, size_t len);
 };
 
-struct gpio_handle {
-    const struct gpio_ops *ops;
+struct cp_gpio_handle {
+    const struct cp_gpio_ops *ops;
 
     /* gpio-sysfs and gpio-cdev state */
     unsigned int line;
@@ -54,8 +54,8 @@ struct gpio_handle {
 
     /* gpio-cdev state */
     int chip_fd;
-    gpio_direction_t direction;
-    gpio_edge_t edge;
+    cp_gpio_direction_t direction;
+    cp_gpio_edge_t edge;
 
     /* error state */
     struct {
@@ -64,14 +64,14 @@ struct gpio_handle {
     } error;
 };
 
-static const struct gpio_ops gpio_sysfs_ops;
-static const struct gpio_ops gpio_cdev_ops;
+static const struct cp_gpio_ops gpio_sysfs_ops;
+static const struct cp_gpio_ops gpio_cdev_ops;
 
 /*********************************************************************************/
 /* Public interface, except for open()s */
 /*********************************************************************************/
 
-gpio_t *gpio_new(void) {
+gpio_t *cp_gpio_new(void) {
     gpio_t *gpio = calloc(1, sizeof(gpio_t));
     if (gpio == NULL)
         return NULL;
@@ -84,79 +84,79 @@ gpio_t *gpio_new(void) {
     return gpio;
 }
 
-void gpio_free(gpio_t *gpio) {
+void cp_gpio_free(gpio_t *gpio) {
     free(gpio);
 }
 
-const char *gpio_errmsg(gpio_t *gpio) {
+const char *cp_gpio_errmsg(gpio_t *gpio) {
     return gpio->error.errmsg;
 }
 
-int gpio_errno(gpio_t *gpio) {
+int cp_gpio_errno(gpio_t *gpio) {
     return gpio->error.c_errno;
 }
 
-int gpio_read(gpio_t *gpio, bool *value) {
+int cp_gpio_read(gpio_t *gpio, bool *value) {
     return gpio->ops->read(gpio, value);
 }
 
-int gpio_write(gpio_t *gpio, bool value) {
+int cp_gpio_write(gpio_t *gpio, bool value) {
     return gpio->ops->write(gpio, value);
 }
 
-int gpio_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp) {
+int cp_gpio_read_event(gpio_t *gpio, cp_gpio_edge_t *edge, uint64_t *timestamp) {
     return gpio->ops->read_event(gpio, edge, timestamp);
 }
 
-int gpio_poll(gpio_t *gpio, int timeout_ms) {
+int cp_gpio_poll(gpio_t *gpio, int timeout_ms) {
     return gpio->ops->poll(gpio, timeout_ms);
 }
 
-int gpio_close(gpio_t *gpio) {
+int cp_gpio_close(gpio_t *gpio) {
     return gpio->ops->close(gpio);
 }
 
-int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
+int cp_gpio_get_direction(gpio_t *gpio, cp_gpio_direction_t *direction) {
     return gpio->ops->get_direction(gpio, direction);
 }
 
-int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
+int cp_gpio_get_edge(gpio_t *gpio, cp_gpio_edge_t *edge) {
     return gpio->ops->get_edge(gpio, edge);
 }
 
-int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction) {
+int cp_gpio_set_direction(gpio_t *gpio, cp_gpio_direction_t direction) {
     return gpio->ops->set_direction(gpio, direction);
 }
 
-int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge) {
+int cp_gpio_set_edge(gpio_t *gpio, cp_gpio_edge_t edge) {
     return gpio->ops->set_edge(gpio, edge);
 }
 
-unsigned int gpio_line(gpio_t *gpio) {
+unsigned int cp_gpio_line(gpio_t *gpio) {
     return gpio->ops->line(gpio);
 }
 
-int gpio_fd(gpio_t *gpio) {
+int cp_gpio_fd(gpio_t *gpio) {
     return gpio->ops->fd(gpio);
 }
 
-int gpio_name(gpio_t *gpio, char *str, size_t len) {
+int cp_gpio_name(gpio_t *gpio, char *str, size_t len) {
     return gpio->ops->name(gpio, str, len);
 }
 
-int gpio_chip_fd(gpio_t *gpio) {
+int cp_gpio_chip_fd(gpio_t *gpio) {
     return gpio->ops->chip_fd(gpio);
 }
 
-int gpio_chip_name(gpio_t *gpio, char *str, size_t len) {
+int cp_gpio_chip_name(gpio_t *gpio, char *str, size_t len) {
     return gpio->ops->chip_name(gpio, str, len);
 }
 
-int gpio_chip_label(gpio_t *gpio, char *str, size_t len) {
+int cp_gpio_chip_label(gpio_t *gpio, char *str, size_t len) {
     return gpio->ops->chip_label(gpio, str, len);
 }
 
-int gpio_tostring(gpio_t *gpio, char *str, size_t len) {
+int cp_gpio_tostring(gpio_t *gpio, char *str, size_t len) {
     return gpio->ops->tostring(gpio, str, len);
 }
 
@@ -271,7 +271,7 @@ static int gpio_sysfs_write(gpio_t *gpio, bool value) {
     return 0;
 }
 
-static int gpio_sysfs_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp) {
+static int gpio_sysfs_read_event(gpio_t *gpio, cp_gpio_edge_t *edge, uint64_t *timestamp) {
     return _gpio_error(gpio, GPIO_ERROR_UNSUPPORTED, 0, "GPIO of type sysfs does not support read event");
 }
 
@@ -298,7 +298,7 @@ static int gpio_sysfs_poll(gpio_t *gpio, int timeout_ms) {
     return 0;
 }
 
-static int gpio_sysfs_set_direction(gpio_t *gpio, gpio_direction_t direction) {
+static int gpio_sysfs_set_direction(gpio_t *gpio, cp_gpio_direction_t direction) {
     char gpio_path[P_PATH_MAX];
     int fd;
 
@@ -320,7 +320,7 @@ static int gpio_sysfs_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     return 0;
 }
 
-static int gpio_sysfs_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
+static int gpio_sysfs_get_direction(gpio_t *gpio, cp_gpio_direction_t *direction) {
     char gpio_path[P_PATH_MAX];
     char buf[8];
     int fd, ret;
@@ -349,7 +349,7 @@ static int gpio_sysfs_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
     return 0;
 }
 
-static int gpio_sysfs_set_edge(gpio_t *gpio, gpio_edge_t edge) {
+static int gpio_sysfs_set_edge(gpio_t *gpio, cp_gpio_edge_t edge) {
     char gpio_path[P_PATH_MAX];
     int fd;
 
@@ -371,7 +371,7 @@ static int gpio_sysfs_set_edge(gpio_t *gpio, gpio_edge_t edge) {
     return 0;
 }
 
-static int gpio_sysfs_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
+static int gpio_sysfs_get_edge(gpio_t *gpio, cp_gpio_edge_t *edge) {
     char gpio_path[P_PATH_MAX];
     char buf[16];
     int fd, ret;
@@ -474,9 +474,9 @@ static int gpio_sysfs_chip_label(gpio_t *gpio, char *str, size_t len) {
 }
 
 static int gpio_sysfs_tostring(gpio_t *gpio, char *str, size_t len) {
-    gpio_direction_t direction;
+    cp_gpio_direction_t direction;
     const char *direction_str;
-    gpio_edge_t edge;
+    cp_gpio_edge_t edge;
     const char *edge_str;
     char chip_name[32];
     const char *chip_name_str;
@@ -511,7 +511,7 @@ static int gpio_sysfs_tostring(gpio_t *gpio, char *str, size_t len) {
                     gpio->line, gpio->line_fd, direction_str, edge_str, chip_name_str, chip_label_str);
 }
 
-static const struct gpio_ops gpio_sysfs_ops = {
+static const struct cp_gpio_ops gpio_sysfs_ops = {
     .read = gpio_sysfs_read,
     .write = gpio_sysfs_write,
     .read_event = gpio_sysfs_read_event,
@@ -530,7 +530,7 @@ static const struct gpio_ops gpio_sysfs_ops = {
     .tostring = gpio_sysfs_tostring,
 };
 
-int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction) {
+int cp_gpio_open_sysfs(gpio_t *gpio, unsigned int line, cp_gpio_direction_t direction) {
     char gpio_path[P_PATH_MAX];
     struct stat stat_buf;
     char buf[16];
@@ -591,7 +591,7 @@ int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction)
 /* cdev implementation */
 /*********************************************************************************/
 
-static int _gpio_cdev_reopen(gpio_t *gpio, gpio_direction_t direction, gpio_edge_t edge) {
+static int _gpio_cdev_reopen(gpio_t *gpio, cp_gpio_direction_t direction, cp_gpio_edge_t edge) {
     static const char gpio_label[] = "periphery";
 
     if (gpio->line_fd >= 0) {
@@ -674,7 +674,7 @@ static int gpio_cdev_write(gpio_t *gpio, bool value) {
     return 0;
 }
 
-static int gpio_cdev_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp) {
+static int gpio_cdev_read_event(gpio_t *gpio, cp_gpio_edge_t *edge, uint64_t *timestamp) {
     struct gpioevent_data event_data = {0};
 
     if (gpio->edge == GPIO_EDGE_NONE)
@@ -725,17 +725,17 @@ static int gpio_cdev_close(gpio_t *gpio) {
     return 0;
 }
 
-static int gpio_cdev_get_direction(gpio_t *gpio, gpio_direction_t *direction) {
+static int gpio_cdev_get_direction(gpio_t *gpio, cp_gpio_direction_t *direction) {
     *direction = gpio->direction;
     return 0;
 }
 
-static int gpio_cdev_get_edge(gpio_t *gpio, gpio_edge_t *edge) {
+static int gpio_cdev_get_edge(gpio_t *gpio, cp_gpio_edge_t *edge) {
     *edge = gpio->edge;
     return 0;
 }
 
-static int gpio_cdev_set_direction(gpio_t *gpio, gpio_direction_t direction) {
+static int gpio_cdev_set_direction(gpio_t *gpio, cp_gpio_direction_t direction) {
     if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO direction (can be in, out, low, high)");
 
@@ -745,7 +745,7 @@ static int gpio_cdev_set_direction(gpio_t *gpio, gpio_direction_t direction) {
     return _gpio_cdev_reopen(gpio, direction, GPIO_EDGE_NONE);
 }
 
-static int gpio_cdev_set_edge(gpio_t *gpio, gpio_edge_t edge) {
+static int gpio_cdev_set_edge(gpio_t *gpio, cp_gpio_edge_t edge) {
     if (edge != GPIO_EDGE_NONE && edge != GPIO_EDGE_RISING && edge != GPIO_EDGE_FALLING && edge != GPIO_EDGE_BOTH)
         return _gpio_error(gpio, GPIO_ERROR_ARG, 0, "Invalid GPIO interrupt edge (can be none, rising, falling, both)");
 
@@ -809,9 +809,9 @@ static int gpio_cdev_chip_label(gpio_t *gpio, char *str, size_t len) {
 }
 
 static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
-    gpio_direction_t direction;
+    cp_gpio_direction_t direction;
     const char *direction_str;
-    gpio_edge_t edge;
+    cp_gpio_edge_t edge;
     const char *edge_str;
     char line_name[32];
     const char *line_name_str;
@@ -853,7 +853,7 @@ static int gpio_cdev_tostring(gpio_t *gpio, char *str, size_t len) {
                     gpio->line, line_name_str, gpio->line_fd, gpio->chip_fd, direction_str, edge_str, chip_name_str, chip_label_str);
 }
 
-static const struct gpio_ops gpio_cdev_ops = {
+static const struct cp_gpio_ops gpio_cdev_ops = {
     .read = gpio_cdev_read,
     .write = gpio_cdev_write,
     .read_event = gpio_cdev_read_event,
@@ -872,7 +872,7 @@ static const struct gpio_ops gpio_cdev_ops = {
     .tostring = gpio_cdev_tostring,
 };
 
-int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction) {
+int cp_gpio_open(gpio_t *gpio, const char *path, unsigned int line, cp_gpio_direction_t direction) {
     int ret, fd;
 
     if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)
@@ -898,7 +898,7 @@ int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_
     return 0;
 }
 
-int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction) {
+int cp_gpio_open_name(gpio_t *gpio, const char *path, const char *name, cp_gpio_direction_t direction) {
     int ret, fd;
 
     if (direction != GPIO_DIR_IN && direction != GPIO_DIR_OUT && direction != GPIO_DIR_OUT_LOW && direction != GPIO_DIR_OUT_HIGH)

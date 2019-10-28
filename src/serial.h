@@ -15,7 +15,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdbool.h>
 
-enum serial_error_code {
+enum cp_serial_error_code {
     SERIAL_ERROR_ARG            = -1, /* Invalid arguments */
     SERIAL_ERROR_OPEN           = -2, /* Opening serial port */
     SERIAL_ERROR_QUERY          = -3, /* Querying serial port attributes */
@@ -24,53 +24,53 @@ enum serial_error_code {
     SERIAL_ERROR_CLOSE          = -6, /* Closing serial port */
 };
 
-typedef enum serial_parity {
+typedef enum cp_serial_parity {
     PARITY_NONE,
     PARITY_ODD,
     PARITY_EVEN,
-} serial_parity_t;
+} cp_serial_parity_t;
 
-typedef struct serial_handle serial_t;
+typedef struct cp_serial_handle cp_serial_t;
 
 /* Primary Functions */
-serial_t *serial_new(void);
-int serial_open(serial_t *serial, const char *path, uint32_t baudrate);
-int serial_open_advanced(serial_t *serial, const char *path,
+cp_serial_t *cp_serial_new(void);
+int cp_serial_open(cp_serial_t *serial, const char *path, uint32_t baudrate);
+int cp_serial_open_advanced(cp_serial_t *serial, const char *path,
                             uint32_t baudrate, unsigned int databits,
-                            serial_parity_t parity, unsigned int stopbits,
+                            cp_serial_parity_t parity, unsigned int stopbits,
                             bool xonxoff, bool rtscts);
-int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms);
-int serial_write(serial_t *serial, const uint8_t *buf, size_t len);
-int serial_flush(serial_t *serial);
-int serial_input_waiting(serial_t *serial, unsigned int *count);
-int serial_output_waiting(serial_t *serial, unsigned int *count);
-int serial_poll(serial_t *serial, int timeout_ms);
-int serial_close(serial_t *serial);
-void serial_free(serial_t *serial);
+int cp_serial_read(cp_serial_t *serial, uint8_t *buf, size_t len, int timeout_ms);
+int cp_serial_write(cp_serial_t *serial, const uint8_t *buf, size_t len);
+int cp_serial_flush(cp_serial_t *serial);
+int cp_serial_input_waiting(cp_serial_t *serial, unsigned int *count);
+int cp_serial_output_waiting(cp_serial_t *serial, unsigned int *count);
+int cp_serial_poll(cp_serial_t *serial, int timeout_ms);
+int cp_serial_close(cp_serial_t *serial);
+void cp_serial_free(cp_serial_t *serial);
 
 /* Getters */
-int serial_get_baudrate(serial_t *serial, uint32_t *baudrate);
-int serial_get_databits(serial_t *serial, unsigned int *databits);
-int serial_get_parity(serial_t *serial, serial_parity_t *parity);
-int serial_get_stopbits(serial_t *serial, unsigned int *stopbits);
-int serial_get_xonxoff(serial_t *serial, bool *xonxoff);
-int serial_get_rtscts(serial_t *serial, bool *rtscts);
+int cp_serial_get_baudrate(cp_serial_t *serial, uint32_t *baudrate);
+int cp_serial_get_databits(cp_serial_t *serial, unsigned int *databits);
+int cp_serial_get_parity(cp_serial_t *serial, cp_serial_parity_t *parity);
+int cp_serial_get_stopbits(cp_serial_t *serial, unsigned int *stopbits);
+int cp_serial_get_xonxoff(cp_serial_t *serial, bool *xonxoff);
+int cp_serial_get_rtscts(cp_serial_t *serial, bool *rtscts);
 
 /* Setters */
-int serial_set_baudrate(serial_t *serial, uint32_t baudrate);
-int serial_set_databits(serial_t *serial, unsigned int databits);
-int serial_set_parity(serial_t *serial, enum serial_parity parity);
-int serial_set_stopbits(serial_t *serial, unsigned int stopbits);
-int serial_set_xonxoff(serial_t *serial, bool enabled);
-int serial_set_rtscts(serial_t *serial, bool enabled);
+int cp_serial_set_baudrate(cp_serial_t *serial, uint32_t baudrate);
+int cp_serial_set_databits(cp_serial_t *serial, unsigned int databits);
+int cp_serial_set_parity(cp_serial_t *serial, enum cp_serial_parity parity);
+int cp_serial_set_stopbits(cp_serial_t *serial, unsigned int stopbits);
+int cp_serial_set_xonxoff(cp_serial_t *serial, bool enabled);
+int cp_serial_set_rtscts(cp_serial_t *serial, bool enabled);
 
 /* Miscellaneous */
-int serial_fd(serial_t *serial);
-int serial_tostring(serial_t *serial, char *str, size_t len);
+int cp_serial_fd(cp_serial_t *serial);
+int cp_serial_tostring(cp_serial_t *serial, char *str, size_t len);
 
 /* Error Handling */
-int serial_errno(serial_t *serial);
-const char *serial_errmsg(serial_t *serial);
+int cp_serial_errno(cp_serial_t *serial);
+const char *cp_serial_errmsg(cp_serial_t *serial);
 
 #ifdef __cplusplus
 }

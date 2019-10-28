@@ -18,7 +18,7 @@ extern "C" {
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
-enum i2c_error_code {
+enum cp_i2c_error_code {
     I2C_ERROR_ARG               = -1, /* Invalid arguments */
     I2C_ERROR_OPEN              = -2, /* Opening I2C device */
     I2C_ERROR_QUERY             = -3, /* Querying I2C device attributes */
@@ -27,22 +27,22 @@ enum i2c_error_code {
     I2C_ERROR_CLOSE             = -6, /* Closing I2C device */
 };
 
-typedef struct i2c_handle i2c_t;
+typedef struct cp_i2c_handle cp_i2c_t;
 
 /* Primary Functions */
-i2c_t *i2c_new(void);
-int i2c_open(i2c_t *i2c, const char *path);
-int i2c_transfer(i2c_t *i2c, struct i2c_msg *msgs, size_t count);
-int i2c_close(i2c_t *i2c);
-void i2c_free(i2c_t *i2c);
+cp_i2c_t *cp_i2c_new(void);
+int cp_i2c_open(cp_i2c_t *i2c, const char *path);
+int cp_i2c_transfer(cp_i2c_t *i2c, struct i2c_msg *msgs, size_t count);
+int cp_i2c_close(cp_i2c_t *i2c);
+void cp_i2c_free(cp_i2c_t *i2c);
 
 /* Miscellaneous */
-int i2c_fd(i2c_t *i2c);
-int i2c_tostring(i2c_t *i2c, char *str, size_t len);
+int cp_i2c_fd(cp_i2c_t *i2c);
+int cp_i2c_tostring(cp_i2c_t *i2c, char *str, size_t len);
 
 /* Error Handling */
-int i2c_errno(i2c_t *i2c);
-const char *i2c_errmsg(i2c_t *i2c);
+int cp_i2c_errno(cp_i2c_t *i2c);
+const char *cp_i2c_errmsg(cp_i2c_t *i2c);
 
 /* struct i2c_msg from <linux/i2c.h>:
 

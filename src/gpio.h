@@ -15,7 +15,7 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-enum gpio_error_code {
+enum cp_gpio_error_code {
     GPIO_ERROR_ARG                  = -1,   /* Invalid arguments */
     GPIO_ERROR_OPEN                 = -2,   /* Opening GPIO */
     GPIO_ERROR_NOT_FOUND            = -3,   /* Line name not found */
@@ -27,56 +27,56 @@ enum gpio_error_code {
     GPIO_ERROR_CLOSE                = -9,   /* Closing GPIO */
 };
 
-typedef enum gpio_direction {
+typedef enum cp_gpio_direction {
     GPIO_DIR_IN,        /* Input */
     GPIO_DIR_OUT,       /* Output, initialized to low */
     GPIO_DIR_OUT_LOW,   /* Output, initialized to low */
     GPIO_DIR_OUT_HIGH,  /* Output, initialized to high */
-} gpio_direction_t;
+} cp_gpio_direction_t;
 
-typedef enum gpio_edge {
+typedef enum cp_gpio_edge {
     GPIO_EDGE_NONE,     /* No interrupt edge */
     GPIO_EDGE_RISING,   /* Rising edge 0 -> 1 */
     GPIO_EDGE_FALLING,  /* Falling edge 1 -> 0 */
     GPIO_EDGE_BOTH      /* Both edges X -> !X */
-} gpio_edge_t;
+} cp_gpio_edge_t;
 
-typedef struct gpio_handle gpio_t;
+typedef struct cp_gpio_handle gpio_t;
 
 /* Primary Functions */
-gpio_t *gpio_new(void);
-int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction);
-int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction);
-int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction);
-int gpio_read(gpio_t *gpio, bool *value);
-int gpio_write(gpio_t *gpio, bool value);
-int gpio_poll(gpio_t *gpio, int timeout_ms);
-int gpio_close(gpio_t *gpio);
-void gpio_free(gpio_t *gpio);
+gpio_t *cp_gpio_new(void);
+int cp_gpio_open(gpio_t *gpio, const char *path, unsigned int line, cp_gpio_direction_t direction);
+int cp_gpio_open_name(gpio_t *gpio, const char *path, const char *name, cp_gpio_direction_t direction);
+int cp_gpio_open_sysfs(gpio_t *gpio, unsigned int line, cp_gpio_direction_t direction);
+int cp_gpio_read(gpio_t *gpio, bool *value);
+int cp_gpio_write(gpio_t *gpio, bool value);
+int cp_gpio_poll(gpio_t *gpio, int timeout_ms);
+int cp_gpio_close(gpio_t *gpio);
+void cp_gpio_free(gpio_t *gpio);
 
 /* Read Event (for character device GPIOs) */
-int gpio_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp);
+int cp_gpio_read_event(gpio_t *gpio, cp_gpio_edge_t *edge, uint64_t *timestamp);
 
 /* Getters */
-int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
-int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
+int cp_gpio_get_direction(gpio_t *gpio, cp_gpio_direction_t *direction);
+int cp_gpio_get_edge(gpio_t *gpio, cp_gpio_edge_t *edge);
 
 /* Setters */
-int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
-int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
+int cp_gpio_set_direction(gpio_t *gpio, cp_gpio_direction_t direction);
+int cp_gpio_set_edge(gpio_t *gpio, cp_gpio_edge_t edge);
 
 /* Miscellaneous Properties */
-unsigned int gpio_line(gpio_t *gpio);
-int gpio_fd(gpio_t *gpio);
-int gpio_name(gpio_t *gpio, char *str, size_t len);
-int gpio_chip_fd(gpio_t *gpio);
-int gpio_chip_name(gpio_t *gpio, char *str, size_t len);
-int gpio_chip_label(gpio_t *gpio, char *str, size_t len);
-int gpio_tostring(gpio_t *gpio, char *str, size_t len);
+unsigned int cp_gpio_line(gpio_t *gpio);
+int cp_gpio_fd(gpio_t *gpio);
+int cp_gpio_name(gpio_t *gpio, char *str, size_t len);
+int cp_gpio_chip_fd(gpio_t *gpio);
+int cp_gpio_chip_name(gpio_t *gpio, char *str, size_t len);
+int cp_gpio_chip_label(gpio_t *gpio, char *str, size_t len);
+int cp_gpio_tostring(gpio_t *gpio, char *str, size_t len);
 
 /* Error Handling */
-int gpio_errno(gpio_t *gpio);
-const char *gpio_errmsg(gpio_t *gpio);
+int cp_gpio_errno(gpio_t *gpio);
+const char *cp_gpio_errmsg(gpio_t *gpio);
 
 #ifdef __cplusplus
 }

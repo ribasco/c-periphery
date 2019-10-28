@@ -65,9 +65,9 @@ This function is a simple accessor to the MMIO handle structure and always succe
 
 ``` c
 int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value);
-int mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value);
-int mmio_read8(mmio_t *mmio, uintptr_t offset, uint8_t *value);
-int mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len);
+int cp_mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value);
+int cp_mmio_read8(mmio_t *mmio, uintptr_t offset, uint8_t *value);
+int cp_mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len);
 ```
 Read 32-bits, 16-bits, 8-bits, or an array of bytes, respectively, from mapped physical memory, starting at the specified byte offset, relative to the base address the MMIO handle was opened with.
 
@@ -78,10 +78,10 @@ Returns 0 on success, or a negative [MMIO error code](#return-value) on failure.
 ------
 
 ``` c
-int mmio_write32(mmio_t *mmio, uintptr_t offset, uint32_t value);
-int mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value);
-int mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value);
-int mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len);
+int cp_mmio_write32(mmio_t *mmio, uintptr_t offset, uint32_t value);
+int cp_mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value);
+int cp_mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value);
+int cp_mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len);
 ```
 Write 32-bits, 16-bits, 8-bits, or an array of bytes, respectively, to mapped physical memory, starting at the specified byte offset, relative to the base address the MMIO handle was opened with.
 
@@ -110,7 +110,7 @@ Free a MMIO handle.
 ------
 
 ``` c
-uintptr_t mmio_base(mmio_t *mmio);
+uintptr_t cp_mmio_base(mmio_t *mmio);
 ```
 Return the base address the MMIO handle was opened with.
 
@@ -121,7 +121,7 @@ This function is a simple accessor to the MMIO handle structure and always succe
 ------
 
 ``` c
-size_t mmio_size(mmio_t *mmio);
+size_t cp_mmio_size(mmio_t *mmio);
 ```
 Return the size the MMIO handle was opened with.
 
@@ -132,7 +132,7 @@ This function is a simple accessor to the MMIO handle structure and always succe
 ------
 
 ``` c
-int mmio_tostring(mmio_t *mmio, char *str, size_t len);
+int cp_mmio_tostring(mmio_t *mmio, char *str, size_t len);
 ```
 Return a string representation of the MMIO handle.
 
@@ -162,7 +162,7 @@ Return a human readable error message of the last failure that occurred.
 
 The periphery MMIO functions return 0 on success or one of the negative error codes below on failure.
 
-The libc errno of the failure in an underlying libc library call can be obtained with the `mmio_errno()` helper function. A human readable error message can be obtained with the `mmio_errmsg()` helper function.
+The libc errno of the failure in an underlying libc library call can be obtained with the `cp_mmio_errno()` helper function. A human readable error message can be obtained with the `mmio_errmsg()` helper function.
 
 | Error Code            | Description           |
 |-----------------------|-----------------------|
@@ -191,7 +191,7 @@ int main(void) {
     uint32_t mac_id0_lo, mac_id0_hi;
     volatile struct am335x_rtcss_registers *regs;
 
-    mmio = mmio_new();
+    mmio = cp_mmio_new();
 
     /* Open control module */
     if (mmio_open(mmio, 0x44E10000, 0x1000) < 0) {
@@ -207,7 +207,7 @@ int main(void) {
 
     /* Read upper 4 bytes of MAC address */
     if (mmio_read32(mmio, 0x634, &mac_id0_hi) < 0) {
-        fprintf(stderr, "mmio_read32(): %s\n", mmio_errmsg(mmio));
+        fprintf(stderr, "cp_mmio_read32(): %s\n", mmio_errmsg(mmio));
         exit(1);
     }
 
@@ -217,18 +217,18 @@ int main(void) {
 
     /* Open RTC subsystem */
     if (mmio_open(mmio, 0x44E3E000, 0x1000) < 0) {
-        fprintf(stderr, "mmio_open(): %s\n", mmio_errmsg(mmio));
+        fprintf(stderr, "cp_mmio_open(): %s\n", cp_mmio_errmsg(mmio));
         exit(1);
     }
 
-    regs = mmio_ptr(mmio);
+    regs = cp_mmio_ptr(mmio);
 
     /* Read current RTC time */
     printf("hours: %02x minutes: %02x seconds %02x\n", regs->hours, regs->minutes, regs->seconds);
 
-    mmio_close(mmio);
+    cp_mmio_close(mmio);
 
-    mmio_free(mmio);
+    cp_mmio_free(mmio);
 
     return 0;
 }

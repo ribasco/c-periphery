@@ -36,14 +36,14 @@ void test_open_config_close(void) {
     ptest();
 
     /* Allocate MMIO */
-    mmio = mmio_new();
+    mmio = cp_mmio_new();
     passert(mmio != NULL);
 
     /* Open aligned base */
-    passert(mmio_open(mmio, CONTROL_MODULE_BASE, PAGE_SIZE) == 0);
-    passert(mmio_base(mmio) == CONTROL_MODULE_BASE);
-    passert(mmio_size(mmio) == PAGE_SIZE);
-    passert(mmio_ptr(mmio) != NULL);
+    passert(cp_mmio_open(mmio, CONTROL_MODULE_BASE, PAGE_SIZE) == 0);
+    passert(cp_mmio_base(mmio) == CONTROL_MODULE_BASE);
+    passert(cp_mmio_size(mmio) == PAGE_SIZE);
+    passert(cp_mmio_ptr(mmio) != NULL);
 
     struct mmio_handle {
         uintptr_t base, aligned_base;
@@ -61,37 +61,37 @@ void test_open_config_close(void) {
     passert(((struct mmio_handle *)mmio)->size == PAGE_SIZE);
     passert(((struct mmio_handle *)mmio)->aligned_base == CONTROL_MODULE_BASE);
     passert(((struct mmio_handle *)mmio)->aligned_size == PAGE_SIZE);
-    passert(mmio_ptr(mmio) == ((struct mmio_handle *)mmio)->ptr);
+    passert(cp_mmio_ptr(mmio) == ((struct mmio_handle *)mmio)->ptr);
 
-    passert(mmio_read32(mmio, PAGE_SIZE-3, &value32) == MMIO_ERROR_ARG);
-    passert(mmio_read32(mmio, PAGE_SIZE-2, &value32) == MMIO_ERROR_ARG);
-    passert(mmio_read32(mmio, PAGE_SIZE-1, &value32) == MMIO_ERROR_ARG);
-    passert(mmio_read32(mmio, PAGE_SIZE, &value32) == MMIO_ERROR_ARG);
-    passert(mmio_close(mmio) == 0);
+    passert(cp_mmio_read32(mmio, PAGE_SIZE - 3, &value32) == MMIO_ERROR_ARG);
+    passert(cp_mmio_read32(mmio, PAGE_SIZE - 2, &value32) == MMIO_ERROR_ARG);
+    passert(cp_mmio_read32(mmio, PAGE_SIZE - 1, &value32) == MMIO_ERROR_ARG);
+    passert(cp_mmio_read32(mmio, PAGE_SIZE, &value32) == MMIO_ERROR_ARG);
+    passert(cp_mmio_close(mmio) == 0);
 
     /* Open unaligned base */
     address = CONTROL_MODULE_BASE + 123;
-    passert(mmio_open(mmio, address, PAGE_SIZE) == 0);
-    passert(mmio_base(mmio) == address);
-    passert(mmio_size(mmio) == PAGE_SIZE);
-    passert(mmio_ptr(mmio) != NULL);
+    passert(cp_mmio_open(mmio, address, PAGE_SIZE) == 0);
+    passert(cp_mmio_base(mmio) == address);
+    passert(cp_mmio_size(mmio) == PAGE_SIZE);
+    passert(cp_mmio_ptr(mmio) != NULL);
 
     /* Check alignment math */
     passert(((struct mmio_handle *)mmio)->base == address);
     passert(((struct mmio_handle *)mmio)->size == PAGE_SIZE);
     passert(((struct mmio_handle *)mmio)->aligned_base == (address - (address % sysconf(_SC_PAGESIZE))));
     passert(((struct mmio_handle *)mmio)->aligned_size == (PAGE_SIZE + (address % sysconf(_SC_PAGESIZE))));
-    passert((size_t)((uint8_t *)mmio_ptr(mmio) - (uint8_t *)((struct mmio_handle *)mmio)->ptr) ==
-                (size_t)(((struct mmio_handle *)mmio)->base - ((struct mmio_handle *)mmio)->aligned_base));
+    passert((size_t)((uint8_t *) cp_mmio_ptr(mmio) - (uint8_t *)((struct mmio_handle *)mmio)->ptr) ==
+            (size_t)(((struct mmio_handle *)mmio)->base - ((struct mmio_handle *)mmio)->aligned_base));
 
-    passert(mmio_read32(mmio, PAGE_SIZE-3, &value32) == MMIO_ERROR_ARG);
-    passert(mmio_read32(mmio, PAGE_SIZE-2, &value32) == MMIO_ERROR_ARG);
-    passert(mmio_read32(mmio, PAGE_SIZE-1, &value32) == MMIO_ERROR_ARG);
-    passert(mmio_read32(mmio, PAGE_SIZE, &value32) == MMIO_ERROR_ARG);
-    passert(mmio_close(mmio) == 0);
+    passert(cp_mmio_read32(mmio, PAGE_SIZE - 3, &value32) == MMIO_ERROR_ARG);
+    passert(cp_mmio_read32(mmio, PAGE_SIZE - 2, &value32) == MMIO_ERROR_ARG);
+    passert(cp_mmio_read32(mmio, PAGE_SIZE - 1, &value32) == MMIO_ERROR_ARG);
+    passert(cp_mmio_read32(mmio, PAGE_SIZE, &value32) == MMIO_ERROR_ARG);
+    passert(cp_mmio_close(mmio) == 0);
 
     /* Free MMIO */
-    mmio_free(mmio);
+    cp_mmio_free(mmio);
 }
 
 void test_loopback(void) {
@@ -103,42 +103,42 @@ void test_loopback(void) {
     ptest();
 
     /* Allocate MMIO */
-    mmio = mmio_new();
+    mmio = cp_mmio_new();
     passert(mmio != NULL);
 
     /* Read USB VID/PID */
-    passert(mmio_open(mmio, CONTROL_MODULE_BASE, PAGE_SIZE) == 0);
-    passert(mmio_read32(mmio, USB_VID_PID_OFFSET, &value32) == 0);
+    passert(cp_mmio_open(mmio, CONTROL_MODULE_BASE, PAGE_SIZE) == 0);
+    passert(cp_mmio_read32(mmio, USB_VID_PID_OFFSET, &value32) == 0);
     passert(value32 == USB_VID_PID);
-    passert(mmio_close(mmio) == 0);
+    passert(cp_mmio_close(mmio) == 0);
 
     /* Read USB VID/PID via byte read */
-    passert(mmio_open(mmio, CONTROL_MODULE_BASE, PAGE_SIZE) == 0);
-    passert(mmio_read(mmio, USB_VID_PID_OFFSET, data, 4) == 0);
+    passert(cp_mmio_open(mmio, CONTROL_MODULE_BASE, PAGE_SIZE) == 0);
+    passert(cp_mmio_read(mmio, USB_VID_PID_OFFSET, data, 4) == 0);
     passert(data[0] == (USB_VID_PID & 0xff));
     passert(data[1] == ((USB_VID_PID >> 8) & 0xff));
     passert(data[2] == ((USB_VID_PID >> 16) & 0xff));
     passert(data[3] == ((USB_VID_PID >> 24) & 0xff));
-    passert(mmio_close(mmio) == 0);
+    passert(cp_mmio_close(mmio) == 0);
 
     /* Write/Read RTC Scratch2 Register */
-    passert(mmio_open(mmio, RTCSS_BASE, PAGE_SIZE) == 0);
-    passert(mmio_write32(mmio, RTC_SCRATCH2_REG_OFFSET, 0xdeadbeef) == 0);
-    passert(mmio_read32(mmio, RTC_SCRATCH2_REG_OFFSET, &value32) == 0);
+    passert(cp_mmio_open(mmio, RTCSS_BASE, PAGE_SIZE) == 0);
+    passert(cp_mmio_write32(mmio, RTC_SCRATCH2_REG_OFFSET, 0xdeadbeef) == 0);
+    passert(cp_mmio_read32(mmio, RTC_SCRATCH2_REG_OFFSET, &value32) == 0);
     passert(value32 == 0xdeadbeef);
-    passert(mmio_close(mmio) == 0);
+    passert(cp_mmio_close(mmio) == 0);
 
     /* Write/Read RTC Scratch2 Register via byte write */
-    passert(mmio_open(mmio, RTCSS_BASE, PAGE_SIZE) == 0);
-    passert(mmio_write(mmio, RTC_SCRATCH2_REG_OFFSET, vector, 4) == 0);
-    passert(mmio_read32(mmio, RTC_SCRATCH2_REG_OFFSET, &value32) == 0);
+    passert(cp_mmio_open(mmio, RTCSS_BASE, PAGE_SIZE) == 0);
+    passert(cp_mmio_write(mmio, RTC_SCRATCH2_REG_OFFSET, vector, 4) == 0);
+    passert(cp_mmio_read32(mmio, RTC_SCRATCH2_REG_OFFSET, &value32) == 0);
     passert(value32 == 0xddccbbaa);
-    passert(mmio_read(mmio, RTC_SCRATCH2_REG_OFFSET, data, 4) == 0);
+    passert(cp_mmio_read(mmio, RTC_SCRATCH2_REG_OFFSET, data, 4) == 0);
     passert(memcmp(data, vector, 4) == 0);
-    passert(mmio_close(mmio) == 0);
+    passert(cp_mmio_close(mmio) == 0);
 
     /* Free MMIO */
-    mmio_free(mmio);
+    cp_mmio_free(mmio);
 }
 
 struct rtc_ss {
@@ -180,11 +180,11 @@ void test_interactive(void) {
     ptest();
 
     /* Allocate MMIO */
-    mmio = mmio_new();
+    mmio = cp_mmio_new();
     passert(mmio != NULL);
 
-    passert(mmio_open(mmio, RTCSS_BASE, PAGE_SIZE) == 0);
-    rtc = (struct rtc_ss *)mmio_ptr(mmio);
+    passert(cp_mmio_open(mmio, RTCSS_BASE, PAGE_SIZE) == 0);
+    rtc = (struct rtc_ss *) cp_mmio_ptr(mmio);
 
     printf("Waiting for seconds ones digit to reset to 0...\n");
 
@@ -214,10 +214,10 @@ void test_interactive(void) {
     passert((stop - start) > 2);
     passert((rtc_stop - rtc_start) > 2);
 
-    passert(mmio_close(mmio) == 0);
+    passert(cp_mmio_close(mmio) == 0);
 
     /* Free MMIO */
-    mmio_free(mmio);
+    cp_mmio_free(mmio);
 }
 
 int main(int argc, char *argv[]) {

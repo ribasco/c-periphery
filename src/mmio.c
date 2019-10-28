@@ -48,15 +48,15 @@ static int _mmio_error(mmio_t *mmio, int code, int c_errno, const char *fmt, ...
     return code;
 }
 
-mmio_t *mmio_new(void) {
+mmio_t *cp_mmio_new(void) {
     return calloc(1, sizeof(mmio_t));
 }
 
-void mmio_free(mmio_t *mmio) {
+void cp_mmio_free(mmio_t *mmio) {
     free(mmio);
 }
 
-int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
+int cp_mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
     int fd;
 
     memset(mmio, 0, sizeof(mmio_t));
@@ -86,14 +86,14 @@ int mmio_open(mmio_t *mmio, uintptr_t base, size_t size) {
     return 0;
 }
 
-void *mmio_ptr(mmio_t *mmio) {
+void *cp_mmio_ptr(mmio_t *mmio) {
     return (void *)((uint8_t *)mmio->ptr + (mmio->base - mmio->aligned_base));
 }
 
 /* WARNING: These functions may trigger a bus fault on some CPUs if an
  * unaligned address is accessed! */
 
-int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value) {
+int cp_mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+4) > mmio->aligned_size)
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
@@ -102,7 +102,7 @@ int mmio_read32(mmio_t *mmio, uintptr_t offset, uint32_t *value) {
     return 0;
 }
 
-int mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value) {
+int cp_mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+2) > mmio->aligned_size)
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
@@ -111,7 +111,7 @@ int mmio_read16(mmio_t *mmio, uintptr_t offset, uint16_t *value) {
     return 0;
 }
 
-int mmio_read8(mmio_t *mmio, uintptr_t offset, uint8_t *value) {
+int cp_mmio_read8(mmio_t *mmio, uintptr_t offset, uint8_t *value) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+1) > mmio->aligned_size)
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
@@ -120,7 +120,7 @@ int mmio_read8(mmio_t *mmio, uintptr_t offset, uint8_t *value) {
     return 0;
 }
 
-int mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len) {
+int cp_mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+len) > mmio->aligned_size)
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
@@ -129,7 +129,7 @@ int mmio_read(mmio_t *mmio, uintptr_t offset, uint8_t *buf, size_t len) {
     return 0;
 }
 
-int mmio_write32(mmio_t *mmio, uintptr_t offset, uint32_t value) {
+int cp_mmio_write32(mmio_t *mmio, uintptr_t offset, uint32_t value) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+4) > mmio->aligned_size)
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
@@ -138,7 +138,7 @@ int mmio_write32(mmio_t *mmio, uintptr_t offset, uint32_t value) {
     return 0;
 }
 
-int mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value) {
+int cp_mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+2) > mmio->aligned_size)
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
@@ -147,7 +147,7 @@ int mmio_write16(mmio_t *mmio, uintptr_t offset, uint16_t value) {
     return 0;
 }
 
-int mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value) {
+int cp_mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+1) > mmio->aligned_size)
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
@@ -156,7 +156,7 @@ int mmio_write8(mmio_t *mmio, uintptr_t offset, uint8_t value) {
     return 0;
 }
 
-int mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len) {
+int cp_mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len) {
     offset += (mmio->base - mmio->aligned_base);
     if ((offset+len) > mmio->aligned_size)
         return _mmio_error(mmio, MMIO_ERROR_ARG, 0, "Offset out of bounds");
@@ -165,7 +165,7 @@ int mmio_write(mmio_t *mmio, uintptr_t offset, const uint8_t *buf, size_t len) {
     return 0;
 }
 
-int mmio_close(mmio_t *mmio) {
+int cp_mmio_close(mmio_t *mmio) {
     if (!mmio->ptr)
         return 0;
 
@@ -178,23 +178,23 @@ int mmio_close(mmio_t *mmio) {
     return 0;
 }
 
-int mmio_tostring(mmio_t *mmio, char *str, size_t len) {
+int cp_mmio_tostring(mmio_t *mmio, char *str, size_t len) {
     return snprintf(str, len, "MMIO 0x%08zx (ptr=%p, size=%zu)", mmio->base, mmio->ptr, mmio->size);
 }
 
-const char *mmio_errmsg(mmio_t *mmio) {
+const char *cp_mmio_errmsg(mmio_t *mmio) {
     return mmio->error.errmsg;
 }
 
-int mmio_errno(mmio_t *mmio) {
+int cp_mmio_errno(mmio_t *mmio) {
     return mmio->error.c_errno;
 }
 
-uintptr_t mmio_base(mmio_t *mmio) {
+uintptr_t cp_mmio_base(mmio_t *mmio) {
     return mmio->base;
 }
 
-size_t mmio_size(mmio_t *mmio) {
+size_t cp_mmio_size(mmio_t *mmio) {
     return mmio->size;
 }
 

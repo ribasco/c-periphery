@@ -23,7 +23,7 @@
 
 #include "serial.h"
 
-struct serial_handle {
+struct cp_serial_handle {
     int fd;
 
     struct {
@@ -32,7 +32,7 @@ struct serial_handle {
     } error;
 };
 
-static int _serial_error(serial_t *serial, int code, int c_errno, const char *fmt, ...) {
+static int _serial_error(cp_serial_t *serial, int code, int c_errno, const char *fmt, ...) {
     va_list ap;
 
     serial->error.c_errno = c_errno;
@@ -51,8 +51,8 @@ static int _serial_error(serial_t *serial, int code, int c_errno, const char *fm
     return code;
 }
 
-serial_t *serial_new(void) {
-    serial_t *serial = calloc(1, sizeof(serial_t));
+cp_serial_t *cp_serial_new(void) {
+    cp_serial_t *serial = calloc(1, sizeof(cp_serial_t));
     if (serial == NULL)
         return NULL;
 
@@ -61,7 +61,7 @@ serial_t *serial_new(void) {
     return serial;
 }
 
-void serial_free(serial_t *serial) {
+void cp_serial_free(cp_serial_t *serial) {
     free(serial);
 }
 
@@ -154,11 +154,11 @@ static int _serial_bits_to_baudrate(uint32_t bits) {
     }
 }
 
-int serial_open(serial_t *serial, const char *path, uint32_t baudrate) {
-    return serial_open_advanced(serial, path, baudrate, 8, PARITY_NONE, 1, false, false);
+int cp_serial_open(cp_serial_t *serial, const char *path, uint32_t baudrate) {
+    return cp_serial_open_advanced(serial, path, baudrate, 8, PARITY_NONE, 1, false, false);
 }
 
-int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, unsigned int databits, serial_parity_t parity, unsigned int stopbits, bool xonxoff, bool rtscts) {
+int cp_serial_open_advanced(cp_serial_t *serial, const char *path, uint32_t baudrate, unsigned int databits, cp_serial_parity_t parity, unsigned int stopbits, bool xonxoff, bool rtscts) {
     struct termios termios_settings;
 
     /* Validate args */
@@ -169,7 +169,7 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
     if (stopbits != 1 && stopbits != 2)
         return _serial_error(serial, SERIAL_ERROR_ARG, 0, "Invalid stop bits (can be 1,2)");
 
-    memset(serial, 0, sizeof(serial_t));
+    memset(serial, 0, sizeof(cp_serial_t));
 
     /* Open serial port */
     if ((serial->fd = open(path, O_RDWR | O_NOCTTY)) < 0)
@@ -237,7 +237,7 @@ int serial_open_advanced(serial_t *serial, const char *path, uint32_t baudrate, 
     return 0;
 }
 
-int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
+int cp_serial_read(cp_serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
     size_t bytes_left, bytes_read;
     ssize_t ret;
     fd_set rfds;
@@ -274,7 +274,7 @@ int serial_read(serial_t *serial, uint8_t *buf, size_t len, int timeout_ms) {
     return bytes_read;
 }
 
-int serial_write(serial_t *serial, const uint8_t *buf, size_t len) {
+int cp_serial_write(cp_serial_t *serial, const uint8_t *buf, size_t len) {
     ssize_t ret;
 
     if ((ret = write(serial->fd, buf, len)) < 0)
@@ -283,7 +283,7 @@ int serial_write(serial_t *serial, const uint8_t *buf, size_t len) {
     return ret;
 }
 
-int serial_flush(serial_t *serial) {
+int cp_serial_flush(cp_serial_t *serial) {
 
     if (tcdrain(serial->fd) < 0)
         return _serial_error(serial, SERIAL_ERROR_IO, errno, "Flushing serial port");
@@ -291,21 +291,21 @@ int serial_flush(serial_t *serial) {
     return 0;
 }
 
-int serial_input_waiting(serial_t *serial, unsigned int *count) {
+int cp_serial_input_waiting(cp_serial_t *serial, unsigned int *count) {
     if (ioctl(serial->fd, TIOCINQ, count) < 0)
         return _serial_error(serial, SERIAL_ERROR_IO, errno, "TIOCINQ query");
 
     return 0;
 }
 
-int serial_output_waiting(serial_t *serial, unsigned int *count) {
+int cp_serial_output_waiting(cp_serial_t *serial, unsigned int *count) {
     if (ioctl(serial->fd, TIOCOUTQ, count) < 0)
         return _serial_error(serial, SERIAL_ERROR_IO, errno, "TIOCOUTQ query");
 
     return 0;
 }
 
-int serial_poll(serial_t *serial, int timeout_ms) {
+int cp_serial_poll(cp_serial_t *serial, int timeout_ms) {
     struct pollfd fds[1];
     int ret;
 
@@ -322,7 +322,7 @@ int serial_poll(serial_t *serial, int timeout_ms) {
     return 0;
 }
 
-int serial_close(serial_t *serial) {
+int cp_serial_close(cp_serial_t *serial) {
     if (serial->fd < 0)
         return 0;
 
@@ -334,7 +334,7 @@ int serial_close(serial_t *serial) {
     return 0;
 }
 
-int serial_get_baudrate(serial_t *serial, uint32_t *baudrate) {
+int cp_serial_get_baudrate(cp_serial_t *serial, uint32_t *baudrate) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -345,7 +345,7 @@ int serial_get_baudrate(serial_t *serial, uint32_t *baudrate) {
     return 0;
 }
 
-int serial_get_databits(serial_t *serial, unsigned int *databits) {
+int cp_serial_get_databits(cp_serial_t *serial, unsigned int *databits) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -369,7 +369,7 @@ int serial_get_databits(serial_t *serial, unsigned int *databits) {
     return 0;
 }
 
-int serial_get_parity(serial_t *serial, serial_parity_t *parity) {
+int cp_serial_get_parity(cp_serial_t *serial, cp_serial_parity_t *parity) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -385,7 +385,7 @@ int serial_get_parity(serial_t *serial, serial_parity_t *parity) {
     return 0;
 }
 
-int serial_get_stopbits(serial_t *serial, unsigned int *stopbits) {
+int cp_serial_get_stopbits(cp_serial_t *serial, unsigned int *stopbits) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -399,7 +399,7 @@ int serial_get_stopbits(serial_t *serial, unsigned int *stopbits) {
     return 0;
 }
 
-int serial_get_xonxoff(serial_t *serial, bool *xonxoff) {
+int cp_serial_get_xonxoff(cp_serial_t *serial, bool *xonxoff) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -413,7 +413,7 @@ int serial_get_xonxoff(serial_t *serial, bool *xonxoff) {
     return 0;
 }
 
-int serial_get_rtscts(serial_t *serial, bool *rtscts) {
+int cp_serial_get_rtscts(cp_serial_t *serial, bool *rtscts) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -427,7 +427,7 @@ int serial_get_rtscts(serial_t *serial, bool *rtscts) {
     return 0;
 }
 
-int serial_set_baudrate(serial_t *serial, uint32_t baudrate) {
+int cp_serial_set_baudrate(cp_serial_t *serial, uint32_t baudrate) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -442,7 +442,7 @@ int serial_set_baudrate(serial_t *serial, uint32_t baudrate) {
     return 0;
 }
 
-int serial_set_databits(serial_t *serial, unsigned int databits) {
+int cp_serial_set_databits(cp_serial_t *serial, unsigned int databits) {
     struct termios termios_settings;
 
     if (databits != 5 && databits != 6 && databits != 7 && databits != 8)
@@ -467,7 +467,7 @@ int serial_set_databits(serial_t *serial, unsigned int databits) {
     return 0;
 }
 
-int serial_set_parity(serial_t *serial, enum serial_parity parity) {
+int cp_serial_set_parity(cp_serial_t *serial, enum cp_serial_parity parity) {
     struct termios termios_settings;
 
     if (parity != PARITY_NONE && parity != PARITY_ODD && parity != PARITY_EVEN)
@@ -492,7 +492,7 @@ int serial_set_parity(serial_t *serial, enum serial_parity parity) {
     return 0;
 }
 
-int serial_set_stopbits(serial_t *serial, unsigned int stopbits) {
+int cp_serial_set_stopbits(cp_serial_t *serial, unsigned int stopbits) {
     struct termios termios_settings;
 
     if (stopbits != 1 && stopbits != 2)
@@ -511,7 +511,7 @@ int serial_set_stopbits(serial_t *serial, unsigned int stopbits) {
     return 0;
 }
 
-int serial_set_xonxoff(serial_t *serial, bool enabled) {
+int cp_serial_set_xonxoff(cp_serial_t *serial, bool enabled) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -527,7 +527,7 @@ int serial_set_xonxoff(serial_t *serial, bool enabled) {
     return 0;
 }
 
-int serial_set_rtscts(serial_t *serial, bool enabled) {
+int cp_serial_set_rtscts(cp_serial_t *serial, bool enabled) {
     struct termios termios_settings;
 
     if (tcgetattr(serial->fd, &termios_settings) < 0)
@@ -543,7 +543,7 @@ int serial_set_rtscts(serial_t *serial, bool enabled) {
     return 0;
 }
 
-int serial_tostring(serial_t *serial, char *str, size_t len) {
+int cp_serial_tostring(cp_serial_t *serial, char *str, size_t len) {
     struct termios termios_settings;
     uint32_t baudrate;
     const char *databits_str, *parity_str, *stopbits_str, *xonxoff_str, *rtscts_str;
@@ -589,15 +589,15 @@ int serial_tostring(serial_t *serial, char *str, size_t len) {
     return snprintf(str, len, "Serial (fd=%d, baudrate=%u, databits=%s, parity=%s, stopbits=%s, xonxoff=%s, rtscts=%s)", serial->fd, baudrate, databits_str, parity_str, stopbits_str, xonxoff_str, rtscts_str);
 }
 
-const char *serial_errmsg(serial_t *serial) {
+const char *cp_serial_errmsg(cp_serial_t *serial) {
     return serial->error.errmsg;
 }
 
-int serial_errno(serial_t *serial) {
+int cp_serial_errno(cp_serial_t *serial) {
     return serial->error.c_errno;
 }
 
-int serial_fd(serial_t *serial) {
+int cp_serial_fd(cp_serial_t *serial) {
     return serial->fd;
 }
 

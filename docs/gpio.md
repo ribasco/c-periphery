@@ -9,9 +9,9 @@ GPIO wrapper functions for Linux userspace character device `gpio-cdev` and sysf
 
 /* Primary Functions */
 gpio_t *gpio_new(void);
-int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction);
-int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction);
-int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction);
+int gpio_open(gpio_t *gpio, const char *path, unsigned int line, cp_gpio_direction_t direction);
+int gpio_open_name(gpio_t *gpio, const char *path, const char *name, cp_gpio_direction_t direction);
+int gpio_open_sysfs(gpio_t *gpio, unsigned int line, cp_gpio_direction_t direction);
 int gpio_read(gpio_t *gpio, bool *value);
 int gpio_write(gpio_t *gpio, bool value);
 int gpio_poll(gpio_t *gpio, int timeout_ms);
@@ -19,15 +19,15 @@ int gpio_close(gpio_t *gpio);
 void gpio_free(gpio_t *gpio);
 
 /* Read Event (for character device GPIOs) */
-int gpio_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp);
+int gpio_read_event(gpio_t *gpio, cp_gpio_edge_t *edge, uint64_t *timestamp);
 
 /* Getters */
-int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
-int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
+int gpio_get_direction(gpio_t *gpio, cp_gpio_direction_t *direction);
+int gpio_get_edge(gpio_t *gpio, cp_gpio_edge_t *edge);
 
 /* Setters */
-int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
-int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
+int gpio_set_direction(gpio_t *gpio, cp_gpio_direction_t direction);
+int gpio_set_edge(gpio_t *gpio, cp_gpio_edge_t edge);
 
 /* Miscellaneous Properties */
 unsigned int gpio_line(gpio_t *gpio);
@@ -45,13 +45,13 @@ const char *gpio_errmsg(gpio_t *gpio);
 
 ### ENUMERATIONS
 
-* `gpio_direction_t`
+* `cp_gpio_direction_t`
     * `GPIO_DIR_IN`: Input
     * `GPIO_DIR_OUT`: Output, initialized to low
     * `GPIO_DIR_OUT_LOW`: Output, initialized to low
     * `GPIO_DIR_OUT_HIGH`: Output, initialized to high
 
-* `gpio_edge_t`
+* `cp_gpio_edge_t`
     * `GPIO_EDGE_NONE`: No interrupt edge
     * `GPIO_EDGE_RISING`: Rising edge (0 -> 1 transition)
     * `GPIO_EDGE_FALLING`: Falling edge (1 -> 0 transition)
@@ -69,7 +69,7 @@ Returns a valid handle on success, or NULL on failure.
 ------
 
 ``` c
-int gpio_open(gpio_t *gpio, const char *path, unsigned int line, gpio_direction_t direction);
+int gpio_open(gpio_t *gpio, const char *path, unsigned int line, cp_gpio_direction_t direction);
 ```
 Open the character device GPIO with the specified GPIO line and direction at the specified character device GPIO chip path (e.g. `/dev/gpiochip0`).
 
@@ -80,7 +80,7 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ------
 
 ``` c
-int gpio_open_name(gpio_t *gpio, const char *path, const char *name, gpio_direction_t direction);
+int cp_gpio_open_name(gpio_t *gpio, const char *path, const char *name, cp_gpio_direction_t direction);
 ```
 Open the character device GPIO with the specified GPIO name and direction at the specified character device GPIO chip path (e.g. `/dev/gpiochip0`).
 
@@ -91,7 +91,7 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ------
 
 ``` c
-int gpio_open_sysfs(gpio_t *gpio, unsigned int line, gpio_direction_t direction);
+int cp_gpio_open_sysfs(gpio_t *gpio, unsigned int line, cp_gpio_direction_t direction);
 ```
 Open the sysfs GPIO with the specified line and direction.
 
@@ -124,7 +124,7 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ------
 
 ``` c
-int gpio_poll(gpio_t *gpio, int timeout_ms);
+int cp_gpio_poll(gpio_t *gpio, int timeout_ms);
 ```
 Poll a GPIO for the edge event configured with `gpio_set_edge()`.
 
@@ -137,7 +137,7 @@ Returns 1 on success (an edge event occurred), 0 on timeout, or a negative [GPIO
 ------
 
 ``` c
-int gpio_read_event(gpio_t *gpio, gpio_edge_t *edge, uint64_t *timestamp);
+int cp_gpio_read_event(gpio_t *gpio, cp_gpio_edge_t *edge, uint64_t *timestamp);
 ```
 Read the edge event that occurred with the GPIO.
 
@@ -168,8 +168,8 @@ Free a GPIO handle.
 ------
 
 ```c
-int gpio_get_direction(gpio_t *gpio, gpio_direction_t *direction);
-int gpio_get_edge(gpio_t *gpio, gpio_edge_t *edge);
+int cp_gpio_get_direction(gpio_t *gpio, cp_gpio_direction_t *direction);
+int cp_gpio_get_edge(gpio_t *gpio, cp_gpio_edge_t *edge);
 ```
 Query the configured direction or interrupt edge, respectively, of the GPIO.
 
@@ -180,8 +180,8 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ------
 
 ```c
-int gpio_set_direction(gpio_t *gpio, gpio_direction_t direction);
-int gpio_set_edge(gpio_t *gpio, gpio_edge_t edge);
+int cp_gpio_set_direction(gpio_t *gpio, cp_gpio_direction_t direction);
+int cp_gpio_set_edge(gpio_t *gpio, cp_gpio_edge_t edge);
 ```
 Set the direction or interrupt edge, respectively, of the GPIO.
 
@@ -192,7 +192,7 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ------
 
 ``` c
-unsigned int gpio_line(gpio_t *gpio);
+unsigned int cp_gpio_line(gpio_t *gpio);
 ```
 Return the line the GPIO handle was opened with.
 
@@ -203,7 +203,7 @@ This function is a simple accessor to the GPIO handle structure and always succe
 ------
 
 ``` c
-int gpio_fd(gpio_t *gpio);
+int cp_gpio_fd(gpio_t *gpio);
 ```
 Return the line file descriptor of the GPIO handle.
 
@@ -214,7 +214,7 @@ This function is a simple accessor to the GPIO handle structure and always succe
 ------
 
 ``` c
-int gpio_name(gpio_t *gpio, char *str, size_t len);
+int cp_gpio_name(gpio_t *gpio, char *str, size_t len);
 ```
 Return the line name of the GPIO.
 
@@ -227,7 +227,7 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ------
 
 ``` c
-int gpio_chip_fd(gpio_t *gpio);
+int cp_gpio_chip_fd(gpio_t *gpio);
 ```
 Return the GPIO chip file descriptor of the GPIO handle.
 
@@ -240,7 +240,7 @@ Returns a non-negative file descriptor on success, or a negative [GPIO error cod
 ------
 
 ``` c
-int gpio_chip_name(gpio_t *gpio, char *str, size_t len);
+int cp_gpio_chip_name(gpio_t *gpio, char *str, size_t len);
 ```
 Return the name of the GPIO chip associated with the GPIO.
 
@@ -251,7 +251,7 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ------
 
 ``` c
-int gpio_chip_label(gpio_t *gpio, char *str, size_t len);
+int cp_gpio_chip_label(gpio_t *gpio, char *str, size_t len);
 ```
 Return the label of the GPIO chip associated with the GPIO.
 
@@ -262,11 +262,11 @@ Returns 0 on success, or a negative [GPIO error code](#return-value) on failure.
 ------
 
 ``` c
-int gpio_tostring(gpio_t *gpio, char *str, size_t len);
+int cp_gpio_tostring(gpio_t *gpio, char *str, size_t len);
 ```
 Return a string representation of the GPIO handle.
 
-`gpio` should be a valid pointer to a GPIO handle opened with one of the `gpio_open*()` functions.
+`gpio` should be a valid pointer to a GPIO handle opened with one of the `cp_gpio_open*()` functions.
 
 This function behaves and returns like `snprintf()`.
 
@@ -296,7 +296,7 @@ This function is a simple accessor to the GPIO handle structure and always succe
 
 The periphery GPIO functions return 0 on success or one of the negative error codes below on failure.
 
-The libc errno of the failure in an underlying libc library call can be obtained with the `gpio_errno()` helper function. A human readable error message can be obtained with the `gpio_errmsg()` helper function.
+The libc errno of the failure in an underlying libc library call can be obtained with the `cp_gpio_errno()` helper function. A human readable error message can be obtained with the `gpio_errmsg()` helper function.
 
 | Error Code                        | Description                           |
 |-----------------------------------|---------------------------------------|
@@ -324,7 +324,7 @@ int main(void) {
     bool value;
 
     gpio_in = gpio_new();
-    gpio_out = gpio_new();
+    gpio_out = cp_gpio_new();
 
     /* Open GPIO /dev/gpiochip0 line 10 with input direction */
     if (gpio_open(gpio_in, "/dev/gpiochip0", 10, GPIO_DIR_IN) < 0) {
@@ -340,21 +340,21 @@ int main(void) {
 
     /* Read input GPIO into value */
     if (gpio_read(gpio_in, &value) < 0) {
-        fprintf(stderr, "gpio_read(): %s\n", gpio_errmsg(gpio_in));
+        fprintf(stderr, "cp_gpio_read(): %s\n", gpio_errmsg(gpio_in));
         exit(1);
     }
 
     /* Write output GPIO with !value */
     if (gpio_write(gpio_out, !value) < 0) {
-        fprintf(stderr, "gpio_write(): %s\n", gpio_errmsg(gpio_out));
+        fprintf(stderr, "cp_gpio_write(): %s\n", cp_gpio_errmsg(gpio_out));
         exit(1);
     }
 
     gpio_close(gpio_in);
-    gpio_close(gpio_out);
+    cp_gpio_close(gpio_out);
 
     gpio_free(gpio_in);
-    gpio_free(gpio_out);
+    cp_gpio_free(gpio_out);
 
     return 0;
 }
